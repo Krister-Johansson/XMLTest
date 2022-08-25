@@ -1,0 +1,30 @@
+{
+  "name": "xmltest",
+  "version": "1.0.0",
+  "description": "Just a small test",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "node ./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Krister-Johansson/XMLTest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Krister-Johansson/XMLTest/issues"
+  },
+  "homepage": "https://github.com/Krister-Johansson/XMLTest#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "express": "^4.18.1",
+    "fast-xml-parser": "^4.0.9"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0"
+  }
+}
