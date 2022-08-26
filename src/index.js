@@ -1,106 +1,68 @@
-const express = require('express')
-const utils = require("./utils")
+const logic = require("./logic")
 
-const app = express()
-const port = 3000
+let output = null;
+let feedURI = null;
+let reverse = null;
+let format = null;
+let sortBy = null;
+let fileName = null
+let path = null
+let port = 3000
 
-const fetchRssFeed = async (url, format, sortBy, reverse) => {
-    const feed = await utils.getRSSFeed(url)
-    if (feed.error) {
-        return {
-            error: feed.error,
-            data: null
-        }
+process.argv.forEach(element => {
+    if(element.includes("--output=")){
+        output = element.split("=")[1]
     }
-    
-    let xml = await utils.parseXML(feed.data)
-    if (xml.error) {
-        return {
-            error: xml.error,
-            data: null
-        }
+    if(element.includes("--feedURI=")){
+        feedURI = element.split("=")[1]
     }
-    if (xml.data.rss.channel) {
-        if (Array.isArray(xml.data.rss.channel.item)
-        && xml.data.rss.channel.item.length > 0
-        && sortBy
-        && xml.data.rss.channel.item[0][sortBy]
-        && reverse)
-        {
-            xml.data.rss.channel.item = utils.sortBy(xml.data.rss.channel.item, sortBy, reverse)
-        }
+    if(element.includes("--sortBy=")){
+        sortBy = element.split("=")[1]
+    }
+    if(element.includes("--format=")){
+        format = element.split("=")[1]
+    }
+    if(element.includes("--reverse=")){
+        reverse = element.split("=")[1]
+    }
+    if(element.includes("--fileName=")){
+        fileName = element.split("=")[1]
+    }
+    if(element.includes("--path=")){
+        path = element.split("=")[1]
+    }
+    if(element.includes("--port=")){
+        port = element.split("=")[1]
+    }
+});
 
-        if (format === "json") {
-            return {
-                error: null,
-                data: xml.data
+if(output === "file"){
+    logic.exportToFile(feedURI, format, sortBy, reverse)
+        .then(result => {
+            if (result.error) {
+                console.log(result.error)
+            } else {
+                console.log(result.file)
             }
-        } else {
-            const xmlData = utils.jsonToXml(xml.data)
-            if (xmlData.error) {
-                return {
-                    error: xmlData.error,
-                    data: null
-                }
-            }
-            return {
-                error: null,
-                data: xmlData.data
-            }
+        }).catch(error => {
+            console.log(error)
         }
-    }
-    return {
-        error: "No RSS feed data found",
-        data: null
-    }
+    )
 }
 
-
-app.get('/', async (req, res) => {
-    let {
-        rssUri,
-        format,
-        sortBy,
-        reverse
-    } = req.query
-
-    if(reverse === undefined){
-        reverse = false
-    }else if(reverse === "true"){
-        reverse = true
-    }else{
-        reverse = false
-    }
-
-    const {
-        error,
-        data
-    } = await fetchRssFeed(rssUri, format, sortBy, reverse)
-    if (error) {
-        return res.send(error)
-    }
-    res.send(data)
-})
-
-app.listen(port, () => {
-    console.log(`App running on port http://127.0.0.1:${port}?rssUri=https://news.un.org/feed/subscribe/en/news/region/europe/feed/rss.xml`)
-})
-
-const init = async () => {
-    const feed = await utils.getRSSFeed("https://news.un.org/feed/subscribe/en/news/region/europe/feed/rss.xml")
-    const {
-        data,
-        error
-    } = await utils.parseXML(feed.data)
-
-    if (data.rss.channel.item) {
-        data.rss.channel.item = utils.sortBy(data.rss.channel.item, "pubDate", false)
-
-        const saveFile = await utils.exportToFile(data, "json", "./data", "data")
-        console.log(saveFile)
-    }
+if(output === "console"){
+    logic.exportToConsole(feedURI, format, path, fileName, sortBy, reverse).then(result => {
+        if (result.error) {
+            console.log(result.error)
+        }
+        console.log(result.data)
+    }).catch(error => {
+        console.log(error)
+    })
 }
 
-// (async () => {
-//     await init();
-// })();
+if(output === "web"){
+    logic.app.app.listen(port, () => {
+        console.log(`App running on port http://127.0.0.1:${port}?rssUri=https://www.jnytt.se/feeds/feed.xml&format=${format}&sortBy=${sortBy}&reverse=${reverse}`)
+    })
+}
