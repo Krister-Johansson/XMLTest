@@ -1,4 +1,19 @@
 section.jumbotron.text-center
     .container
-        h1 LogRocket Pug Example
+        h1 RSS Reader
+        p.lead.text-muted Order your feed by
+        p
+        if sortBy == "title"
+            a.btn.btn-primary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=title&reverse=${reverse}`) Title
+        else
+            a.btn.btn-secondary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=title&reverse=${reverse}`) Title
         
+        if sortBy == "pubDate"
+            a.btn.btn-primary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=pubDate&reverse=${reverse}`) Date
+        else
+            a.btn.btn-secondary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=pubDate&reverse=${reverse}`) Date
+        
+        if reverse == "true"
+            a.btn.btn-primary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=pubDate&reverse=false`) Reverse
+        else
+            a.btn.btn-secondary.m-2(href=`/?rssUri=https://www.jnytt.se/feeds/feed.xml&format=web&sortBy=pubDate&reverse=true`) Reverse

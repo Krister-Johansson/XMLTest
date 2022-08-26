@@ -13,11 +13,14 @@ app.get('/', async(req, res) => {
         sortBy,
         reverse
     } = req.query
-
-    const { error, data } = await utils.parsRssFeed(rssUri, format, sortBy, reverse)
-    if (error) {
-        return res.send(error)
-    }
+    const result = await utils.parsRssFeed(rssUri, format, sortBy, reverse)
+    const data = result.map((feed) => {
+        if (feed.error) {
+            return res.send(error)
+        }
+        return feed.data
+    });
+   console.log(data)
     if(format === "web"){
         return res.render('index', {data, rssUri,
             format,

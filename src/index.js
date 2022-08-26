@@ -10,6 +10,7 @@ let path = null
 let port = 3000
 
 process.argv.forEach(element => {
+    console.log(element)
     if(element.includes("--output=")){
         output = element.split("=")[1]
     }
@@ -37,12 +38,12 @@ process.argv.forEach(element => {
 });
 
 if(output === "file"){
-    logic.exportToFile(feedURI, format, sortBy, reverse)
+    logic.exportToFile(feedURI, format, path, fileName, sortBy, reverse)
         .then(result => {
-            if (result.error) {
+            if(result.error){
                 console.log(result.error)
-            } else {
-                console.log(result.file)
+            }else{
+                console.log(result.path)
             }
         }).catch(error => {
             console.log(error)
@@ -51,11 +52,8 @@ if(output === "file"){
 }
 
 if(output === "console"){
-    logic.exportToConsole(feedURI, format, path, fileName, sortBy, reverse).then(result => {
-        if (result.error) {
-            console.log(result.error)
-        }
-        console.log(result.data)
+    logic.exportToConsole(feedURI, format, sortBy, reverse).then(result => {
+        console.log(result)
     }).catch(error => {
         console.log(error)
     })

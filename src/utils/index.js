@@ -150,7 +150,7 @@ const exportToFile = async (data, format, path, filename) => {
     switch (format) {
         case "json":
             fileType = "json"
-            
+            data = JSON.stringify(data)
             break;
         case "xml":
             fileType = "xml"
@@ -183,54 +183,74 @@ const exportToFile = async (data, format, path, filename) => {
 }
 
 const parsRssFeed = async (url, format, sortByKey, reverse) => {
-    const feed = await getRSSFeed(url)
-    if (feed.error) {
+    if(url === undefined || url === null){
         return {
-            error: feed.error,
+            error: "No RSS feed URI provided",
             data: null
         }
     }
+    const urls = url.split(";")
 
-    let jsonXML = await parseXML(feed.data)
-    if (jsonXML.error) {
+    if(urls.length < 1){
         return {
-            error: jsonXML.error,
+            error: "No RSS feed URI provided",
             data: null
         }
     }
-
-    if (jsonXML.data.rss.channel) {
-        if (Array.isArray(jsonXML.data.rss.channel.item) &&
-        jsonXML.data.rss.channel.item.length > 0 &&
-            sortByKey &&
-            jsonXML.data.rss.channel.item[0][sortByKey]
-        ) {
-            jsonXML.data.rss.channel.item = sortBy(jsonXML.data.rss.channel.item, sortByKey, reverse)
-        }
-
-        if (format === "json" || format === "web") {
+    let rssData = []
+    
+    rssData = urls.map(async (url) => {
+        const feed = await getRSSFeed(url)
+        if (feed.error) {
             return {
-                error: null,
-                data: jsonXML.data
+                error: feed.error,
+                data: null
             }
-        } else {
-            const xmlData = jsonToXml(jsonXML.data)
-            if (xmlData.error) {
+        }
+    
+        let jsonXML = await parseXML(feed.data)
+        if (jsonXML.error) {
+            return {
+                error: jsonXML.error,
+                data: null
+            }
+        }
+    
+        if (jsonXML.data.rss.channel) {
+            if (Array.isArray(jsonXML.data.rss.channel.item) &&
+            jsonXML.data.rss.channel.item.length > 0 &&
+                sortByKey &&
+                jsonXML.data.rss.channel.item[0][sortByKey]
+            ) {
+                jsonXML.data.rss.channel.item = sortBy(jsonXML.data.rss.channel.item, sortByKey, reverse)
+            }
+    
+            if (format === "json" || format === "web") {
                 return {
-                    error: xmlData.error,
-                    data: null
+                    error: null,
+                    data: jsonXML.data
+                }
+            } else {
+                const xmlData = jsonToXml(jsonXML.data)
+                if (xmlData.error) {
+                    return {
+                        error: xmlData.error,
+                        data: null
+                    }
+                }
+                return {
+                    error: null,
+                    data: xmlData.data
                 }
             }
-            return {
-                error: null,
-                data: xmlData.data
-            }
         }
-    }
-    return {
-        error: "No RSS feed data found",
-        data: null
-    }
+        return {
+            error: "No RSS feed data found",
+            data: null
+        }
+    });
+    
+    return await Promise.all(rssData)
 }
 
 module.exports = {

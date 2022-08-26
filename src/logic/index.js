@@ -3,12 +3,19 @@ const app = require("./web")
 
 const exportToFile = async (rssUri, format, path, fileName, sortBy, reverse) => {
     const rssFeed = await utils.parsRssFeed(rssUri, format, sortBy, reverse)
-    if (rssFeed.error) {
-        return {
-            error: rssFeed.error
+    let data = rssFeed.map((feed) => {
+       
+        if (feed.error) {
+            console.log(feed.error)
+            return
         }
+        return feed.data
+    });
+    if(format === "xml"){
+        data = data.toString();
     }
-    const file = await utils.exportToFile(rssFeed.data, format, path, fileName)
+
+    const file = await utils.exportToFile(data, format, path, fileName)
     if (file.error) {
         return {
             error: file.error
@@ -16,22 +23,13 @@ const exportToFile = async (rssUri, format, path, fileName, sortBy, reverse) => 
     }
     return {
         error: null,
+        path: file.path,
         data: file.data
     }
 }
 
 const exportToConsole = async (rssUri, format, sortBy, reverse) => {
-    const rssFeed = await utils.parsRssFeed(rssUri, format, sortBy, reverse)
-    if (rssFeed.error) {
-        return {
-            error: rssFeed.error
-        }
-    }
-
-    return {
-        error: null,
-        data: rssFeed.data
-    }
+    return await utils.parsRssFeed(rssUri, format, sortBy, reverse) 
 }
 
 module.exports = {
